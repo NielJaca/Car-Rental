@@ -55,16 +55,20 @@ const sessionConfig = {
     secure: isProduction,
   },
 };
-if (isProduction && process.env.MONGODB_URI) {
+const mongoUri = process.env.MONGODB_URI || '';
+const isAtlasSql = /query\.mongodb\.net|atlas-sql/i.test(mongoUri);
+if (isProduction && mongoUri && !isAtlasSql) {
   try {
     const MongoStore = require('connect-mongo');
     sessionConfig.store = MongoStore.create({
-      mongoUrl: process.env.MONGODB_URI,
+      mongoUrl: mongoUri,
       ttl: 24 * 60 * 60,
     });
   } catch (err) {
     console.warn('connect-mongo not installed; sessions will use memory (run: npm install connect-mongo for production).');
   }
+} else if (isProduction && isAtlasSql) {
+  console.warn('MONGODB_URI looks like Atlas SQL / Data Federation. Use a DATABASE CLUSTER URI instead (Atlas → Connect → Connect your application). Sessions will use memory until fixed.');
 }
 app.use(session(sessionConfig));
 

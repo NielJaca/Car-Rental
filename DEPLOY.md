@@ -28,7 +28,7 @@ This guide deploys the **backend** and **frontend** as two separate services on 
    | `FRONTEND_URL` | Your frontend URL (e.g. `https://your-frontend.onrender.com`) |
 
    **Where to get these:**
-   - **MONGODB_URI**: [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) → create a free cluster → **Connect** → **Drivers** (or **Connect your application**) → copy the connection string. Replace `<password>` with your database user password. Example: `mongodb+srv://myuser:mypass@cluster0.xxxxx.mongodb.net/car-rental?retryWrites=true&w=majority`
+   - **MONGODB_URI**: [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) → **Database** (left menu) → create or use a **cluster** (e.g. M0 free) → **Connect** → **Drivers** / **Connect your application** → copy the URI. Replace `<password>` with your database user password. The host must look like `cluster0.xxxxx.mongodb.net` — **do not** use Atlas SQL or Data Federation (`atlas-sql-...query.mongodb.net`), or the app will crash with "command createIndexes not found".
    - **SESSION_SECRET**: Generate a random string. On your computer run: `openssl rand -hex 32` (Mac/Linux/Git Bash), or use any password generator and paste a long random string (e.g. 32+ characters).
    - **FRONTEND_URL**: Set this **after** you deploy the frontend (step 2 below). It is the URL Render gives your Static Site (e.g. `https://lovely-car-rental.onrender.com`). You can add it later and redeploy the backend.
 
