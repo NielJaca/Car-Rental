@@ -119,8 +119,11 @@ In **Admin → Dashboard**, use **Download Report**:
 
 This downloads from `GET /api/reports/bookings` and requires an admin session.
 
+## Deploy to Render (Production)
+
+See **[DEPLOY.md](./DEPLOY.md)** for step-by-step deployment of backend (Web Service) and frontend (Static Site) on Render, including environment variables and CORS/session setup.
+
 ## Optional
 
 - Store images in cloud (e.g. Cloudinary) and save URL in Car.
-- Use `connect-mongo` for session store in production.
 - Change default admin password after first login.

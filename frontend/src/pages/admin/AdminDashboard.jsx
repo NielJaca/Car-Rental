@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { apiGet } from '../../api';
+import { apiGet, getApiOrigin } from '../../api';
 import Spinner from '../../components/Spinner';
 import {
   Chart as ChartJS,
@@ -441,7 +441,8 @@ export default function AdminDashboard() {
                 if (report.status) params.set('status', report.status);
                 if (report.carId) params.set('carId', report.carId);
                 params.set('format', report.format);
-                window.location.href = `/api/reports/bookings?${params.toString()}`;
+                const base = getApiOrigin();
+                window.location.href = base ? `${base}/api/reports/bookings?${params.toString()}` : `/api/reports/bookings?${params.toString()}`;
               }}
             >
               Download

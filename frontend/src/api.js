@@ -1,4 +1,17 @@
-const API_BASE = '/api';
+const API_ORIGIN = import.meta.env.VITE_API_URL
+  ? new URL(import.meta.env.VITE_API_URL.replace(/\/$/, '') + '/api').origin
+  : '';
+const API_BASE = API_ORIGIN ? `${API_ORIGIN}/api` : '/api';
+
+export function getApiOrigin() {
+  return API_ORIGIN;
+}
+
+/** Full URL for an API path (e.g. apiUrl('/auth/logout') for fetch in production). */
+export function apiUrl(path) {
+  const p = path.startsWith('/') ? path : `/${path}`;
+  return `${API_BASE.replace(/\/$/, '')}${p}`;
+}
 
 function api(path, options = {}) {
   const url = path.startsWith('http') ? path : `${API_BASE}${path}`;
@@ -39,7 +52,8 @@ export const apiDelete = (path, body) => api(path, { method: 'DELETE', body: bod
 export function getImageUrl(imageUrl) {
   if (!imageUrl) return null;
   if (imageUrl.startsWith('http')) return imageUrl;
-  return imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+  const path = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+  return API_ORIGIN ? `${API_ORIGIN}${path}` : path;
 }
 
 /** Returns array of image URLs from a car (imageUrls array or legacy imageUrl). */

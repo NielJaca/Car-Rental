@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
+import { apiUrl } from '../api';
 
-const HEALTH_URL = '/api/health';
 const CHECK_INTERVAL_MS = 15000;
 
 async function checkBackend() {
   try {
-    const res = await fetch(HEALTH_URL, { method: 'GET', credentials: 'include' });
+    const res = await fetch(apiUrl('/health'), { method: 'GET', credentials: 'include' });
     const ct = res.headers.get('content-type') || '';
     if (!res.ok) return false;
     if (ct.includes('application/json')) {
