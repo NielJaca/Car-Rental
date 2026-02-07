@@ -60,10 +60,6 @@ const reportsRoutes = require('./routes/reports');
     secure: isProduction || isCrossOrigin,
     ...(isCrossOrigin ? { sameSite: 'none' } : {}),
   };
-  app.locals.cookieConfig = { isProduction, isCrossOrigin, serveFrontend, cookieOpts };
-
-  console.log('[session] serveFrontend=%s isCrossOrigin=%s secure=%s sameSite=%s', serveFrontend, isCrossOrigin, cookieOpts.secure, cookieOpts.sameSite || '(omit)');
-
   app.use(session({
     secret: process.env.SESSION_SECRET || 'car-rental-secret',
     resave: false,

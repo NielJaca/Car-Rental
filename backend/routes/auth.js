@@ -1,22 +1,11 @@
 const crypto = require('crypto');
 const express = require('express');
-const path = require('path');
-const fs = require('fs');
 const Admin = require('../models/Admin');
 const { requireAdmin } = require('../middleware/auth');
 
 const router = express.Router();
-const debugLogPath = path.join(process.cwd(), '.cursor', 'debug.log');
 const TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
 const adminTokens = new Map();
-
-function debugLog(payload) {
-  try {
-    fs.mkdirSync(path.dirname(debugLogPath), { recursive: true });
-    const line = JSON.stringify({ ...payload, timestamp: Date.now(), sessionId: 'debug-session' }) + '\n';
-    fs.appendFileSync(debugLogPath, line, { flag: 'a' });
-  } catch (_) {}
-}
 
 function createAdminToken(adminId) {
   const token = crypto.randomBytes(32).toString('hex');
@@ -56,12 +45,6 @@ router.post('/login', async (req, res) => {
     req.session.save((err) => {
       if (err) return res.status(500).json({ error: 'Session error' });
       const token = createAdminToken(adminId);
-      // #region agent log
-      const cfg = req.app.locals?.cookieConfig || {};
-      const d = { origin: req.get('origin') || 'none', host: req.get('host'), forwardedProto: req.get('x-forwarded-proto'), userAgent: req.get('user-agent')?.slice(0, 60), cookieConfig: cfg };
-      debugLog({ hypothesisId: 'H1,H2,H3,H5', location: 'auth.js:login-success', message: 'Login succeeded', data: d });
-      console.log('[session] login ok', d.origin, d.host, d.forwardedProto);
-      // #endregion
       res.json({ success: true, token });
     });
   } catch (err) {
