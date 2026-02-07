@@ -119,6 +119,12 @@ In **Admin → Dashboard**, use **Download Report**:
 
 This downloads from `GET /api/reports/bookings` and requires an admin session.
 
+## Deployment (e.g. Render)
+
+**Backend**: Set `MONGODB_URI`, `SESSION_SECRET`, and `FRONTEND_URL` (your frontend’s public URL) in the service environment. Use a regular MongoDB cluster URI (e.g. `cluster0.xxx.mongodb.net`), not Atlas SQL.
+
+**Frontend**: When the frontend is on a different domain than the backend, set `VITE_API_URL` to the backend URL (e.g. `https://lovely-car-rental.onrender.com`) before building. This ensures API calls and the health check reach the backend. For Vercel/Netlify/Render static sites, add it in the build environment variables.
+
 ## Optional
 
 - Store images in cloud (e.g. Cloudinary) and save URL in Car.

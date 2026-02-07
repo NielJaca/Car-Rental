@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 
-const HEALTH_URL = '/api/health';
+const API_BASE = (import.meta.env.VITE_API_URL || '') + '/api';
+const HEALTH_URL = `${API_BASE}/health`;
 const CHECK_INTERVAL_MS = 15000;
 
 async function checkBackend() {
