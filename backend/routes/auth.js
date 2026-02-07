@@ -15,30 +15,41 @@ function debugLog(payload) {
   } catch (_) {}
 }
 
+function redirectUrl(req, path) {
+  const cfg = req.app.locals.cookieConfig || {};
+  if (cfg.serveFrontend) return path;
+  const origins = (process.env.FRONTEND_URL || '').split(',').map((o) => o.trim().replace(/\/$/, '')).filter(Boolean);
+  return origins[0] ? `${origins[0]}${path}` : path;
+}
+
 router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
+    const wantRedirect = req.query.redirect === '1';
+    const toLogin = (err) => {
+      if (wantRedirect) res.redirect(redirectUrl(req, `/admin/login?error=${encodeURIComponent(err)}`));
+      else res.status(401).json({ error: err });
+    };
     if (!username || !password) {
-      return res.status(400).json({ error: 'Username and password required' });
+      return wantRedirect ? res.redirect(redirectUrl(req, '/admin/login?error=' + encodeURIComponent('Username and password required')) : res.status(400).json({ error: 'Username and password required' });
     }
     const admin = await Admin.findOne({ username: (username || '').trim().toLowerCase() });
-    if (!admin) {
-      return res.status(401).json({ error: 'Username not found' });
-    }
-    if (!(await admin.comparePassword(password))) {
-      return res.status(401).json({ error: 'Invalid password' });
-    }
+    if (!admin) return toLogin('Username not found');
+    if (!(await admin.comparePassword(password))) return toLogin('Invalid password');
     req.session.adminId = admin._id.toString();
     req.session.save((err) => {
-      if (err) return res.status(500).json({ error: 'Session error' });
+      if (err) return wantRedirect ? res.redirect(redirectUrl(req, '/admin/login?error=' + encodeURIComponent('Session error')) : res.status(500).json({ error: 'Session error' });
       // #region agent log
       const cfg = req.app.locals.cookieConfig || {};
       debugLog({ hypothesisId: 'H1,H2,H3,H5', location: 'auth.js:login-success', message: 'Login succeeded', data: { origin: req.get('origin') || 'none', host: req.get('host'), forwardedProto: req.get('x-forwarded-proto'), referer: req.get('referer')?.slice(0, 80), cookieConfig: cfg } });
       // #endregion
-      res.json({ success: true });
+      if (wantRedirect) res.redirect(redirectUrl(req, '/admin/dashboard'));
+      else res.json({ success: true });
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    const wantRedirect = req.query.redirect === '1';
+    if (wantRedirect) res.redirect(redirectUrl(req, '/admin/login?error=' + encodeURIComponent(err.message || 'Login failed')));
+    else res.status(500).json({ error: err.message });
   }
 });
 
