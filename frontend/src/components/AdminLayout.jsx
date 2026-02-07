@@ -42,7 +42,6 @@ export default function AdminLayout() {
       setIsAdmin(false);
       return;
     }
-    setAuthChecked(false);
     apiGet('/auth/me')
       .then(() => {
         setIsAdmin(true);

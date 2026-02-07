@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { apiPost } from '../../api';
 import { showError } from '../../lib/swal';
 import EyeIcon from '../../components/EyeIcon';
 
 export default function AdminLogin() {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -32,7 +31,7 @@ export default function AdminLogin() {
     setLoading(true);
     apiPost('/auth/login', { username: u, password })
       .then(() => {
-        navigate('/admin/dashboard', { replace: true });
+        window.location.href = '/admin/dashboard';
       })
       .catch((err) => {
         const msg = err.message || 'Login failed';
