@@ -15,11 +15,11 @@ function debugLog(payload) {
   } catch (_) {}
 }
 
-function redirectUrl(req, path) {
+function redirectUrl(req, urlPath) {
   const cfg = req.app.locals.cookieConfig || {};
-  if (cfg.serveFrontend) return path;
+  if (cfg.serveFrontend) return urlPath;
   const origins = (process.env.FRONTEND_URL || '').split(',').map((o) => o.trim().replace(/\/$/, '')).filter(Boolean);
-  return origins[0] ? `${origins[0]}${path}` : path;
+  return origins[0] ? `${origins[0]}${urlPath}` : urlPath;
 }
 
 router.post('/login', async (req, res) => {
@@ -31,14 +31,18 @@ router.post('/login', async (req, res) => {
       else res.status(401).json({ error: err });
     };
     if (!username || !password) {
-      return wantRedirect ? res.redirect(redirectUrl(req, '/admin/login?error=' + encodeURIComponent('Username and password required')) : res.status(400).json({ error: 'Username and password required' });
+      const msg = 'Username and password required';
+      return wantRedirect ? res.redirect(redirectUrl(req, '/admin/login?error=' + encodeURIComponent(msg))) : res.status(400).json({ error: msg });
     }
     const admin = await Admin.findOne({ username: (username || '').trim().toLowerCase() });
     if (!admin) return toLogin('Username not found');
     if (!(await admin.comparePassword(password))) return toLogin('Invalid password');
     req.session.adminId = admin._id.toString();
     req.session.save((err) => {
-      if (err) return wantRedirect ? res.redirect(redirectUrl(req, '/admin/login?error=' + encodeURIComponent('Session error')) : res.status(500).json({ error: 'Session error' });
+      if (err) {
+        const em = 'Session error';
+        return wantRedirect ? res.redirect(redirectUrl(req, '/admin/login?error=' + encodeURIComponent(em))) : res.status(500).json({ error: em });
+      }
       // #region agent log
       const cfg = req.app.locals.cookieConfig || {};
       debugLog({ hypothesisId: 'H1,H2,H3,H5', location: 'auth.js:login-success', message: 'Login succeeded', data: { origin: req.get('origin') || 'none', host: req.get('host'), forwardedProto: req.get('x-forwarded-proto'), referer: req.get('referer')?.slice(0, 80), cookieConfig: cfg } });
@@ -48,8 +52,9 @@ router.post('/login', async (req, res) => {
     });
   } catch (err) {
     const wantRedirect = req.query.redirect === '1';
-    if (wantRedirect) res.redirect(redirectUrl(req, '/admin/login?error=' + encodeURIComponent(err.message || 'Login failed')));
-    else res.status(500).json({ error: err.message });
+    const em = err.message || 'Login failed';
+    if (wantRedirect) res.redirect(redirectUrl(req, '/admin/login?error=' + encodeURIComponent(em)));
+    else res.status(500).json({ error: em });
   }
 });
 
