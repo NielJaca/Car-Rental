@@ -20,9 +20,19 @@ const reportsRoutes = require('./routes/reports');
   const app = express();
   const PORT = process.env.PORT || 3000;
   const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5500';
+  const allowedOrigins = FRONTEND_URL.split(',').map((o) => o.trim()).filter(Boolean);
 
   app.use(cors({
-    origin: FRONTEND_URL,
+    origin: (origin, cb) => {
+      if (!origin) return cb(null, true);
+      if (allowedOrigins.includes(origin)) return cb(null, origin);
+      try {
+        const reqHost = new URL(origin).hostname;
+        const match = allowedOrigins.find((o) => new URL(o).hostname === reqHost);
+        if (match) return cb(null, origin);
+      } catch (_) {}
+      cb(null, false);
+    },
     credentials: true
   }));
   app.use(express.json());
