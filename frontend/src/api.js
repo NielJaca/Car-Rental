@@ -4,11 +4,20 @@ export function getApiBase() {
   return import.meta.env.VITE_API_URL || '';
 }
 
+function getAdminToken() {
+  try {
+    return typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('adminToken') : null;
+  } catch { return null; }
+}
+
 function api(path, options = {}) {
   const url = path.startsWith('http') ? path : `${API_BASE}${path}`;
+  const headers = { 'Content-Type': 'application/json', ...options.headers };
+  const token = getAdminToken();
+  if (token) headers['Authorization'] = `Bearer ${token}`;
   const opts = {
     ...options,
-    headers: { 'Content-Type': 'application/json', ...options.headers },
+    headers,
     credentials: 'include',
   };
   return fetch(url, opts).then(async (res) => {
@@ -26,6 +35,7 @@ function api(path, options = {}) {
     if (!res.ok) {
       const isLoginRequest = res.url && res.url.includes('/auth/login');
       if (res.status === 401 && !isLoginRequest && typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
+        try { sessionStorage.removeItem('adminToken'); } catch (_) {}
         window.location.href = '/admin/login?session=expired';
         return;
       }
@@ -35,6 +45,7 @@ function api(path, options = {}) {
   });
 }
 
+export { getAdminToken };
 export const apiGet = (path) => api(path, { method: 'GET' });
 export const apiPost = (path, body) => api(path, { method: 'POST', body: body ? JSON.stringify(body) : undefined });
 export const apiPut = (path, body) => api(path, { method: 'PUT', body: body ? JSON.stringify(body) : undefined });

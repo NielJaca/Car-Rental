@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
@@ -6,6 +7,8 @@ const { requireAdmin } = require('../middleware/auth');
 
 const router = express.Router();
 const debugLogPath = path.join(process.cwd(), '.cursor', 'debug.log');
+const TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
+const adminTokens = new Map();
 
 function debugLog(payload) {
   try {
@@ -13,6 +16,26 @@ function debugLog(payload) {
     const line = JSON.stringify({ ...payload, timestamp: Date.now(), sessionId: 'debug-session' }) + '\n';
     fs.appendFileSync(debugLogPath, line, { flag: 'a' });
   } catch (_) {}
+}
+
+function createAdminToken(adminId) {
+  const token = crypto.randomBytes(32).toString('hex');
+  adminTokens.set(token, { adminId, expires: Date.now() + TOKEN_TTL_MS });
+  return token;
+}
+
+function validateAdminToken(token) {
+  if (!token) return null;
+  const entry = adminTokens.get(token);
+  if (!entry || entry.expires < Date.now()) {
+    if (entry) adminTokens.delete(token);
+    return null;
+  }
+  return entry.adminId;
+}
+
+function removeAdminToken(token) {
+  adminTokens.delete(token);
 }
 
 router.post('/login', async (req, res) => {
@@ -28,28 +51,37 @@ router.post('/login', async (req, res) => {
     if (!(await admin.comparePassword(password))) {
       return res.status(401).json({ error: 'Invalid password' });
     }
-    req.session.adminId = admin._id.toString();
+    const adminId = admin._id.toString();
+    req.session.adminId = adminId;
     req.session.save((err) => {
       if (err) return res.status(500).json({ error: 'Session error' });
+      const token = createAdminToken(adminId);
       // #region agent log
-      const cfg = req.app.locals.cookieConfig || {};
+      const cfg = req.app.locals?.cookieConfig || {};
       const d = { origin: req.get('origin') || 'none', host: req.get('host'), forwardedProto: req.get('x-forwarded-proto'), userAgent: req.get('user-agent')?.slice(0, 60), cookieConfig: cfg };
       debugLog({ hypothesisId: 'H1,H2,H3,H5', location: 'auth.js:login-success', message: 'Login succeeded', data: d });
       console.log('[session] login ok', d.origin, d.host, d.forwardedProto);
       // #endregion
-      res.json({ success: true });
+      res.json({ success: true, token });
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-router.post('/logout', requireAdmin, (req, res) => {
-  req.session.destroy((err) => {
-    if (err) return res.status(500).json({ error: 'Logout error' });
-    res.clearCookie('connect.sid');
+router.post('/logout', (req, res) => {
+  const auth = req.get('authorization');
+  const bearer = auth && auth.startsWith('Bearer ') ? auth.slice(7) : null;
+  if (bearer) removeAdminToken(bearer);
+  if (req.session && req.session.adminId) {
+    req.session.destroy((err) => {
+      if (err) return res.status(500).json({ error: 'Logout error' });
+      res.clearCookie('connect.sid');
+      res.json({ success: true });
+    });
+  } else {
     res.json({ success: true });
-  });
+  }
 });
 
 router.get('/me', requireAdmin, (req, res) => {
@@ -75,3 +107,4 @@ router.post('/register', requireAdmin, async (req, res) => {
 });
 
 module.exports = router;
+module.exports.validateAdminToken = validateAdminToken;

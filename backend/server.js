@@ -7,6 +7,7 @@ const path = require('path');
 const connectDB = require('./config/db');
 
 const authRoutes = require('./routes/auth');
+const { requireAdmin, setTokenValidator } = require('./middleware/auth');
 const carsRoutes = require('./routes/cars');
 const availabilityRoutes = require('./routes/availability');
 const bookingsRoutes = require('./routes/bookings');
@@ -75,6 +76,7 @@ const reportsRoutes = require('./routes/reports');
     cookie: cookieOpts,
   }));
 
+  setTokenValidator(authRoutes.validateAdminToken || (() => null));
   app.use('/api/auth', authRoutes);
   app.use('/api/cars', carsRoutes);
   app.use('/api/availability', availabilityRoutes);

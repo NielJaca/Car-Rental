@@ -1,7 +1,7 @@
 import { Outlet, Navigate, useLocation } from 'react-router-dom';
 import { Link, NavLink } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
-import { apiGet, getApiBase } from '../api';
+import { apiGet, getApiBase, getAdminToken } from '../api';
 import { confirm } from '../lib/swal';
 import Spinner from './Spinner';
 import AddAdminModal from './AddAdminModal';
@@ -72,9 +72,12 @@ export default function AdminLayout() {
   const logout = () => {
     confirm({ title: 'Log out?', text: 'Are you sure you want to log out?' }).then((ok) => {
       if (!ok) return;
-      fetch(`${getApiBase()}/api/auth/logout`, { method: 'POST', credentials: 'include' })
-        .then(() => { window.location.href = '/admin/login'; })
-        .catch(() => { window.location.href = '/admin/login'; });
+      const token = getAdminToken();
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      fetch(`${getApiBase()}/api/auth/logout`, { method: 'POST', credentials: 'include', headers })
+        .then(() => { try { sessionStorage.removeItem('adminToken'); } catch (_) {} window.location.href = '/admin/login'; })
+        .catch(() => { try { sessionStorage.removeItem('adminToken'); } catch (_) {} window.location.href = '/admin/login'; });
     });
   };
 

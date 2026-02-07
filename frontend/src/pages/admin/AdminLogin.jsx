@@ -30,7 +30,9 @@ export default function AdminLogin() {
     }
     setLoading(true);
     apiPost('/auth/login', { username: u, password })
-      .then(() => {
+      .then((data) => {
+        const token = data && data.token;
+        if (token && typeof sessionStorage !== 'undefined') sessionStorage.setItem('adminToken', token);
         window.location.href = '/admin/dashboard';
       })
       .catch((err) => {
