@@ -49,8 +49,11 @@ const reportsRoutes = require('./routes/reports');
 
   const isProduction = process.env.NODE_ENV === 'production';
   const frontendUrl = allowedOrigins[0] || '';
-  const isCrossOrigin = frontendUrl.startsWith('https://') && !frontendUrl.includes('localhost');
-  app.locals.cookieConfig = { isProduction, isCrossOrigin, sameSite: isCrossOrigin ? 'none' : 'lax', secure: isProduction || isCrossOrigin };
+  const frontendDist = path.join(__dirname, '..', 'frontend', 'dist');
+  const serveFrontend = require('fs').existsSync(frontendDist);
+  // Combined deployment = same origin; use SameSite=Lax (mobile-friendly). Only use SameSite=None for separate cross-origin frontend.
+  const isCrossOrigin = !serveFrontend && frontendUrl.startsWith('https://') && !frontendUrl.includes('localhost');
+  app.locals.cookieConfig = { isProduction, isCrossOrigin, serveFrontend, sameSite: isCrossOrigin ? 'none' : 'lax', secure: isProduction || isCrossOrigin };
 
   app.use(session({
     secret: process.env.SESSION_SECRET || 'car-rental-secret',
@@ -82,8 +85,6 @@ const reportsRoutes = require('./routes/reports');
     res.json({ ok: true });
   });
 
-  const frontendDist = path.join(__dirname, '..', 'frontend', 'dist');
-  const serveFrontend = require('fs').existsSync(frontendDist);
   if (serveFrontend) {
     app.use(express.static(frontendDist));
     app.get('*', (req, res, next) => {
