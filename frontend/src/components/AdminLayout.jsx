@@ -1,7 +1,7 @@
 import { Outlet, Navigate, useLocation } from 'react-router-dom';
 import { Link, NavLink } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
-import { apiGet } from '../api';
+import { apiGet, getApiBase } from '../api';
 import { confirm } from '../lib/swal';
 import Spinner from './Spinner';
 import AddAdminModal from './AddAdminModal';
@@ -42,6 +42,9 @@ export default function AdminLayout() {
       setIsAdmin(false);
       return;
     }
+    // #region agent log
+    (() => { fetch('http://127.0.0.1:7244/ingest/6f06de1c-f1d5-4816-819f-115811990d5a', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'AdminLayout.jsx', message: 'auth check start', data: { pathname: location.pathname }, timestamp: Date.now(), sessionId: 'debug-session', hypothesisId: 'B' }) }).catch(() => {}); })();
+    // #endregion
     apiGet('/auth/me')
       .then(() => {
         setIsAdmin(true);
@@ -72,7 +75,7 @@ export default function AdminLayout() {
   const logout = () => {
     confirm({ title: 'Log out?', text: 'Are you sure you want to log out?' }).then((ok) => {
       if (!ok) return;
-      fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+      fetch(`${getApiBase()}/api/auth/logout`, { method: 'POST', credentials: 'include' })
         .then(() => { window.location.href = '/admin/login'; })
         .catch(() => { window.location.href = '/admin/login'; });
     });

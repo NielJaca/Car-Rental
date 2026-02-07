@@ -18,27 +18,39 @@ const reportsRoutes = require('./routes/reports');
   await connectDB(mongoUri);
 
   const app = express();
+  app.set('trust proxy', 1);
+
   const PORT = process.env.PORT || 3000;
   const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5500';
-  const allowedOrigins = FRONTEND_URL.split(',').map((o) => o.trim()).filter(Boolean);
+  const allowedOrigins = FRONTEND_URL.split(',').map((o) => o.trim().replace(/\/$/, '')).filter(Boolean);
 
   app.use(cors({
     origin: (origin, cb) => {
       if (!origin) return cb(null, true);
-      if (allowedOrigins.includes(origin)) return cb(null, origin);
+      const originNorm = origin.replace(/\/$/, '');
+      if (allowedOrigins.includes(originNorm)) return cb(null, origin);
       try {
         const reqHost = new URL(origin).hostname;
-        const match = allowedOrigins.find((o) => new URL(o).hostname === reqHost);
+        const match = allowedOrigins.find((o) => {
+          try {
+            return new URL(o).hostname === reqHost;
+          } catch { return false; }
+        });
         if (match) return cb(null, origin);
       } catch (_) {}
       cb(null, false);
     },
-    credentials: true
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   }));
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
   const isProduction = process.env.NODE_ENV === 'production';
+  const frontendUrl = allowedOrigins[0] || '';
+  const isCrossOrigin = frontendUrl.startsWith('https://') && !frontendUrl.includes('localhost');
+
   app.use(session({
     secret: process.env.SESSION_SECRET || 'car-rental-secret',
     resave: false,
@@ -51,8 +63,8 @@ const reportsRoutes = require('./routes/reports');
   cookie: {
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000,
-    sameSite: 'lax',
-    secure: isProduction  // false in dev so cookie works over http://localhost
+    sameSite: isCrossOrigin ? 'none' : 'lax',
+    secure: isProduction || isCrossOrigin
   }
   }));
 

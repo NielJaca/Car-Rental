@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { apiPost } from '../../api';
 import { showError } from '../../lib/swal';
 import EyeIcon from '../../components/EyeIcon';
 
 export default function AdminLogin() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -31,7 +32,10 @@ export default function AdminLogin() {
     setLoading(true);
     apiPost('/auth/login', { username: u, password })
       .then(() => {
-        window.location.href = '/admin/dashboard';
+        // #region agent log
+        (() => { fetch('http://127.0.0.1:7244/ingest/6f06de1c-f1d5-4816-819f-115811990d5a', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'AdminLogin.jsx', message: 'login success, redirecting', data: { useNavigate: true }, timestamp: Date.now(), sessionId: 'debug-session', hypothesisId: 'D', runId: 'post-fix' }) }).catch(() => {}); })();
+        // #endregion
+        navigate('/admin/dashboard', { replace: true });
       })
       .catch((err) => {
         const msg = err.message || 'Login failed';

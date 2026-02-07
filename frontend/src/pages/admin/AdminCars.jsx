@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { apiGet, apiPost, apiPut, apiDelete, getImageUrl, getCarImages } from '../../api';
+import { apiGet, apiPost, apiPut, apiDelete, getImageUrl, getCarImages, getApiBase } from '../../api';
 import { confirm, showError } from '../../lib/swal';
 import Spinner from '../../components/Spinner';
 import EmptyState from '../../components/EmptyState';
@@ -10,7 +10,7 @@ function uploadCarImages(carId, files) {
   if (!files || !files.length) return Promise.resolve();
   const formData = new FormData();
   for (let i = 0; i < files.length; i++) formData.append('images', files[i]);
-  return fetch(`/api/cars/${carId}/upload-many`, {
+  return fetch(`${getApiBase()}/api/cars/${carId}/upload-many`, {
     method: 'POST',
     credentials: 'include',
     body: formData,

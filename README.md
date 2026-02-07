@@ -127,6 +127,19 @@ This downloads from `GET /api/reports/bookings` and requires an admin session.
 
 **Frontend SPA routing (fix "Not Found" on /admin/dashboard)**: For React Router, the static server must serve `index.html` for all paths. On **Render**, add a **Rewrite** rule in your frontend service: **Redirects/Rewrites** → Source `/*`, Destination `/index.html`, Action **Rewrite**.
 
+## Frontend routes (all require SPA fallback)
+
+| Path | Description |
+|------|-------------|
+| `/` | Home (car list) |
+| `/car/:id` | Car details + availability calendar |
+| `/admin` | Redirects to /admin/login |
+| `/admin/login` | Admin login |
+| `/admin/dashboard` | Dashboard stats + charts |
+| `/admin/cars` | Manage cars |
+| `/admin/availability` | Mark unavailable dates |
+| `/admin/bookings` | Manage bookings |
+
 ## Optional
 
 - Store images in cloud (e.g. Cloudinary) and save URL in Car.
