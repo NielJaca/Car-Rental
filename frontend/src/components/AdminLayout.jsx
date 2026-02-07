@@ -1,7 +1,7 @@
 import { Outlet, Navigate, useLocation } from 'react-router-dom';
 import { Link, NavLink } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
-import { apiGet, apiUrl } from '../api';
+import { apiGet } from '../api';
 import { confirm } from '../lib/swal';
 import Spinner from './Spinner';
 import AddAdminModal from './AddAdminModal';
@@ -72,7 +72,7 @@ export default function AdminLayout() {
   const logout = () => {
     confirm({ title: 'Log out?', text: 'Are you sure you want to log out?' }).then((ok) => {
       if (!ok) return;
-      fetch(apiUrl('/auth/logout'), { method: 'POST', credentials: 'include' })
+      fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
         .then(() => { window.location.href = '/admin/login'; })
         .catch(() => { window.location.href = '/admin/login'; });
     });

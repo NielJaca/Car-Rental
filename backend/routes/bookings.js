@@ -41,6 +41,12 @@ async function markBookingDatesUnavailable(carId, startDate, endDate, bookingId 
   await UnavailableDate.insertMany(docs, { ordered: false }).catch(() => {});
 }
 
+/** Remove UnavailableDate entries tied to a booking (when editing dates or unconfirming). */
+async function removeBookingDatesUnavailable(bookingId) {
+  if (!bookingId) return;
+  await UnavailableDate.deleteMany({ bookingId });
+}
+
 router.get('/', requireAdmin, async (req, res) => {
   try {
     const bookings = await Booking.find()
@@ -106,12 +112,20 @@ router.put('/:id', requireAdmin, async (req, res) => {
     const existingStart = existing.startDate ? new Date(existing.startDate).getTime() : null;
     const existingEnd = existing.endDate ? new Date(existing.endDate).getTime() : null;
     const rangeChanged = existingStart !== new Date(start).getTime() || existingEnd !== new Date(end).getTime();
+    const statusChanged = status != null && status !== existing.status;
+
     if (rangeChanged && start && end && new Date(end) >= new Date(start)) {
       const conflict = await hasDateConflict(carIdRaw, start, end, req.params.id);
       if (conflict) {
         return res.status(400).json({ error: 'One or more dates in this range are already booked or unavailable for this car. Please choose different dates.' });
       }
     }
+
+    // Remove old UnavailableDate entries when dates/status change (before updating)
+    if (existing.status === 'confirmed' && (rangeChanged || (statusChanged && status === 'pending'))) {
+      await removeBookingDatesUnavailable(req.params.id);
+    }
+
     const booking = await Booking.findByIdAndUpdate(req.params.id, update, { new: true })
       .populate('carId', 'name pricePerDay');
     if (!booking) return res.status(404).json({ error: 'Booking not found' });
@@ -129,6 +143,7 @@ router.delete('/:id', requireAdmin, async (req, res) => {
   try {
     const booking = await Booking.findByIdAndDelete(req.params.id);
     if (!booking) return res.status(404).json({ error: 'Booking not found' });
+    await removeBookingDatesUnavailable(req.params.id);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });

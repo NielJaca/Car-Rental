@@ -12,7 +12,7 @@ router.post('/login', async (req, res) => {
     }
     const admin = await Admin.findOne({ username: (username || '').trim().toLowerCase() });
     if (!admin) {
-      return res.status(401).json({ error: 'Invalid username' });
+      return res.status(401).json({ error: 'Username not found' });
     }
     if (!(await admin.comparePassword(password))) {
       return res.status(401).json({ error: 'Invalid password' });

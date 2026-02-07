@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { apiGet, apiUrl, getImageUrl, getCarImages } from '../../api';
+import { apiGet, getImageUrl, getCarImages } from '../../api';
 import { confirm, showError } from '../../lib/swal';
 import Spinner from '../../components/Spinner';
 import EmptyState from '../../components/EmptyState';
@@ -60,7 +60,7 @@ export default function AdminAvailability() {
   const doToggle = (date) => {
     const isUnav = unavailable.includes(date);
     setToggling(true);
-    fetch(apiUrl('/availability'), {
+    fetch('/api/availability', {
       method: isUnav ? 'DELETE' : 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },

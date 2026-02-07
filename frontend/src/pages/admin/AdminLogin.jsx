@@ -37,10 +37,10 @@ export default function AdminLogin() {
         const msg = err.message || 'Login failed';
         const title = 'Login failed';
         let text = msg;
-        if (msg === 'Invalid username') {
-          text = 'Username not found. Please check and try again.';
+        if (msg === 'Username not found') {
+          text = 'No admin account exists with this username. Please check the username or contact an administrator.';
         } else if (msg === 'Invalid password') {
-          text = 'Incorrect password for this username. Please try again.';
+          text = 'The password is incorrect for this username. Please try again.';
         } else if (msg === 'Failed to fetch' || msg.includes('Network')) {
           text = 'Cannot reach server. Is the backend running on port 3000?';
         }

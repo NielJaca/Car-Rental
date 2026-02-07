@@ -1,0 +1,8 @@
+{"location":"db.js:getResolvedUri","message":"URI scheme","data":{"scheme":"srv"},"hypothesisId":"MongoStore","timestamp":1770430574318,"sessionId":"debug-session"}
+{"location":"db.js:getResolvedUri","message":"SRV resolved via DoH","data":{"hasUri":true},"hypothesisId":"MongoStore","timestamp":1770430575006,"sessionId":"debug-session"}
+{"location":"db.js:connectDB","message":"mongoose.connect success","data":{"host":"ac-ifsanpt-shard-00-00.lfymtgi.mongodb.net"},"hypothesisId":"MongoStore","runId":"post-fix","timestamp":1770430575606,"sessionId":"debug-session"}
+{"location":"db.js:getResolvedUri","message":"URI scheme","data":{"scheme":"srv"},"hypothesisId":"MongoStore","timestamp":1770430879450,"sessionId":"debug-session"}
+{"location":"db.js:getResolvedUri","message":"SRV resolved via DoH","data":{"hasUri":true},"hypothesisId":"MongoStore","timestamp":1770430879764,"sessionId":"debug-session"}
+{"location":"db.js:getResolvedUri","message":"URI scheme","data":{"scheme":"srv"},"hypothesisId":"MongoStore","timestamp":1770430886526,"sessionId":"debug-session"}
+{"location":"db.js:getResolvedUri","message":"SRV resolved via DoH","data":{"hasUri":true},"hypothesisId":"MongoStore","timestamp":1770430886699,"sessionId":"debug-session"}
+{"location":"db.js:connectDB","message":"mongoose.connect success","data":{"host":"ac-ifsanpt-shard-00-00.lfymtgi.mongodb.net"},"hypothesisId":"MongoStore","runId":"post-fix","timestamp":1770430887234,"sessionId":"debug-session"}

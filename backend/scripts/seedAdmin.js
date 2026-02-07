@@ -1,9 +1,11 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
 const Admin = require('../models/Admin');
+const { getResolvedUri } = require('../config/db');
 
 const seed = async () => {
-  await mongoose.connect(process.env.MONGODB_URI);
+  const uri = await getResolvedUri();
+  await mongoose.connect(uri);
   const exists = await Admin.findOne({ username: 'admin' });
   if (exists) {
     console.log('Admin already exists');
