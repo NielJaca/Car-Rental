@@ -42,9 +42,7 @@ export default function AdminLayout() {
       setIsAdmin(false);
       return;
     }
-    // #region agent log
-    (() => { fetch('http://127.0.0.1:7244/ingest/6f06de1c-f1d5-4816-819f-115811990d5a', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'AdminLayout.jsx', message: 'auth check start', data: { pathname: location.pathname }, timestamp: Date.now(), sessionId: 'debug-session', hypothesisId: 'B' }) }).catch(() => {}); })();
-    // #endregion
+    setAuthChecked(false);
     apiGet('/auth/me')
       .then(() => {
         setIsAdmin(true);

@@ -4,12 +4,6 @@ export function getApiBase() {
   return import.meta.env.VITE_API_URL || '';
 }
 
-const LOG = (d) => {
-  // #region agent log
-  fetch('http://127.0.0.1:7244/ingest/6f06de1c-f1d5-4816-819f-115811990d5a', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...d, timestamp: Date.now(), sessionId: 'debug-session' }) }).catch(() => {});
-  // #endregion
-};
-
 function api(path, options = {}) {
   const url = path.startsWith('http') ? path : `${API_BASE}${path}`;
   const opts = {
@@ -17,9 +11,6 @@ function api(path, options = {}) {
     headers: { 'Content-Type': 'application/json', ...options.headers },
     credentials: 'include',
   };
-  // #region agent log
-  LOG({ location: 'api.js', message: 'api request', data: { path, hasBase: !!import.meta.env.VITE_API_URL }, hypothesisId: 'A,B,C' });
-  // #endregion
   return fetch(url, opts).then(async (res) => {
     const contentType = res.headers.get('content-type') || '';
     let data = {};
@@ -35,9 +26,6 @@ function api(path, options = {}) {
     if (!res.ok) {
       const isLoginRequest = res.url && res.url.includes('/auth/login');
       if (res.status === 401 && !isLoginRequest && typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
-        // #region agent log
-        LOG({ location: 'api.js', message: '401 redirect to session=expired', data: { path, status: 401, isLoginRequest, urlPath: res.url ? new URL(res.url).pathname : '' }, hypothesisId: 'A,B,C' });
-        // #endregion
         window.location.href = '/admin/login?session=expired';
         return;
       }

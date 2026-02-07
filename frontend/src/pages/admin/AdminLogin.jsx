@@ -32,9 +32,6 @@ export default function AdminLogin() {
     setLoading(true);
     apiPost('/auth/login', { username: u, password })
       .then(() => {
-        // #region agent log
-        (() => { fetch('http://127.0.0.1:7244/ingest/6f06de1c-f1d5-4816-819f-115811990d5a', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'AdminLogin.jsx', message: 'login success, redirecting', data: { useNavigate: true }, timestamp: Date.now(), sessionId: 'debug-session', hypothesisId: 'D', runId: 'post-fix' }) }).catch(() => {}); })();
-        // #endregion
         navigate('/admin/dashboard', { replace: true });
       })
       .catch((err) => {
