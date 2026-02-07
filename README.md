@@ -127,6 +127,8 @@ This downloads from `GET /api/reports/bookings` and requires an admin session.
 
 **Frontend SPA routing (fix "Not Found" on /admin/dashboard)**: For React Router, the static server must serve `index.html` for all paths. On **Render**, add a **Rewrite** rule in your frontend service: **Redirects/Rewrites** → Source `/*`, Destination `/index.html`, Action **Rewrite**.
 
+**Option: Combined deployment (fixes "session expired")**: Serve frontend and backend from one Render Web Service so they share the same origin—no cross-origin cookie issues. From project root: Build command `npm run build`, Start command `npm start`. Set `MONGODB_URI`, `SESSION_SECRET`, and `FRONTEND_URL` to your service URL (e.g. `https://lovely-car-rental.onrender.com`). Do not set `VITE_API_URL`; the frontend uses relative `/api`. You can delete the separate frontend service.
+
 ## Frontend routes (all require SPA fallback)
 
 | Path | Description |

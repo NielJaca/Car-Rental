@@ -81,6 +81,16 @@ const reportsRoutes = require('./routes/reports');
     res.json({ ok: true });
   });
 
+  const frontendDist = path.join(__dirname, '..', 'frontend', 'dist');
+  const serveFrontend = require('fs').existsSync(frontendDist);
+  if (serveFrontend) {
+    app.use(express.static(frontendDist));
+    app.get('*', (req, res, next) => {
+      if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) return next();
+      res.sendFile(path.join(frontendDist, 'index.html'));
+    });
+  }
+
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
