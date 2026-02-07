@@ -50,6 +50,7 @@ const reportsRoutes = require('./routes/reports');
   const isProduction = process.env.NODE_ENV === 'production';
   const frontendUrl = allowedOrigins[0] || '';
   const isCrossOrigin = frontendUrl.startsWith('https://') && !frontendUrl.includes('localhost');
+  app.locals.cookieConfig = { isProduction, isCrossOrigin, sameSite: isCrossOrigin ? 'none' : 'lax', secure: isProduction || isCrossOrigin };
 
   app.use(session({
     secret: process.env.SESSION_SECRET || 'car-rental-secret',

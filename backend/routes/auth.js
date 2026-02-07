@@ -1,8 +1,19 @@
 const express = require('express');
+const path = require('path');
+const fs = require('fs');
 const Admin = require('../models/Admin');
 const { requireAdmin } = require('../middleware/auth');
 
 const router = express.Router();
+const debugLogPath = path.join(__dirname, '..', '..', '.cursor', 'debug.log');
+
+function debugLog(payload) {
+  try {
+    fs.mkdirSync(path.dirname(debugLogPath), { recursive: true });
+    const line = JSON.stringify({ ...payload, timestamp: Date.now(), sessionId: 'debug-session' }) + '\n';
+    fs.appendFileSync(debugLogPath, line, { flag: 'a' });
+  } catch (_) {}
+}
 
 router.post('/login', async (req, res) => {
   try {
@@ -20,6 +31,10 @@ router.post('/login', async (req, res) => {
     req.session.adminId = admin._id.toString();
     req.session.save((err) => {
       if (err) return res.status(500).json({ error: 'Session error' });
+      // #region agent log
+      const cfg = req.app.locals.cookieConfig || {};
+      debugLog({ hypothesisId: 'H1,H2,H3,H5', location: 'auth.js:login-success', message: 'Login succeeded', data: { origin: req.get('origin') || 'none', host: req.get('host'), forwardedProto: req.get('x-forwarded-proto'), referer: req.get('referer')?.slice(0, 80), cookieConfig: cfg } });
+      // #endregion
       res.json({ success: true });
     });
   } catch (err) {
