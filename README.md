@@ -125,6 +125,8 @@ This downloads from `GET /api/reports/bookings` and requires an admin session.
 
 **Frontend**: When the frontend is on a different domain than the backend, set `VITE_API_URL` to the backend URL (e.g. `https://lovely-car-rental.onrender.com`) before building. This ensures API calls and the health check reach the backend. For Vercel/Netlify/Render static sites, add it in the build environment variables.
 
+**Frontend SPA routing (fix "Not Found" on /admin/dashboard)**: For React Router, the static server must serve `index.html` for all paths. On **Render**, add a **Rewrite** rule in your frontend service: **Redirects/Rewrites** → Source `/*`, Destination `/index.html`, Action **Rewrite**.
+
 ## Optional
 
 - Store images in cloud (e.g. Cloudinary) and save URL in Car.
