@@ -1,6 +1,6 @@
 const path = require('path');
 const fs = require('fs');
-const debugLogPath = path.join(__dirname, '..', '..', '.cursor', 'debug.log');
+const debugLogPath = path.join(process.cwd(), '.cursor', 'debug.log');
 
 function debugLog(payload) {
   try {
@@ -17,7 +17,9 @@ const requireAdmin = (req, res, next) => {
     return next();
   }
   // #region agent log
-  debugLog({ hypothesisId: 'H4,H5', location: 'auth.js:requireAdmin-reject', message: 'Auth failed - no session/adminId', data: { path: req.path, origin: req.get('origin') || 'none', host: req.get('host'), forwardedProto: req.get('x-forwarded-proto'), hasSession, hasAdminId, cookieHeader: req.get('cookie') ? 'present' : 'absent' } });
+  const d = { path: req.path, origin: req.get('origin') || 'none', host: req.get('host'), forwardedProto: req.get('x-forwarded-proto'), hasSession, hasAdminId, cookieHeader: req.get('cookie') ? 'present' : 'absent', userAgent: req.get('user-agent')?.slice(0, 60) };
+  debugLog({ hypothesisId: 'H4,H5', location: 'auth.js:requireAdmin-reject', message: 'Auth failed - no session/adminId', data: d });
+  console.log('[session] auth failed', d.path, d.cookieHeader, d.origin);
   // #endregion
   res.status(401).json({ error: 'Unauthorized' });
 };

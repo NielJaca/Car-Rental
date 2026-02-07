@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { getApiBase } from '../../api';
+import { apiPost } from '../../api';
 import { showError } from '../../lib/swal';
 import EyeIcon from '../../components/EyeIcon';
 
@@ -14,15 +14,6 @@ export default function AdminLogin() {
   useEffect(() => {
     if (searchParams.get('session') === 'expired') {
       showError('Your session expired. Please log in again.', 'Session expired');
-    }
-    const err = searchParams.get('error');
-    if (err) {
-      const msg = decodeURIComponent(err);
-      let text = msg;
-      if (msg === 'Username not found') text = 'No admin account exists with this username. Please check the username or contact an administrator.';
-      else if (msg === 'Invalid password') text = 'The password is incorrect for this username. Please try again.';
-      else if (msg === 'Failed to fetch' || (msg && msg.includes('Network'))) text = 'Cannot reach server. Is the backend running on port 3000?';
-      showError(text, 'Login failed');
     }
   }, [searchParams]);
 
@@ -38,19 +29,24 @@ export default function AdminLogin() {
       return;
     }
     setLoading(true);
-    const base = (getApiBase() || '').replace(/\/$/, '');
-    const form = document.createElement('form');
-    form.method = 'post';
-    form.action = `${base}/api/auth/login?redirect=1`;
-    [['username', u], ['password', password]].forEach(([name, val]) => {
-      const inp = document.createElement('input');
-      inp.name = name;
-      inp.value = val;
-      if (name === 'password') inp.type = 'password';
-      form.appendChild(inp);
-    });
-    document.body.appendChild(form);
-    form.submit();
+    apiPost('/auth/login', { username: u, password })
+      .then(() => {
+        window.location.href = '/admin/dashboard';
+      })
+      .catch((err) => {
+        const msg = err.message || 'Login failed';
+        const title = 'Login failed';
+        let text = msg;
+        if (msg === 'Username not found') {
+          text = 'No admin account exists with this username. Please check the username or contact an administrator.';
+        } else if (msg === 'Invalid password') {
+          text = 'The password is incorrect for this username. Please try again.';
+        } else if (msg === 'Failed to fetch' || msg.includes('Network')) {
+          text = 'Cannot reach server. Is the backend running on port 3000?';
+        }
+        showError(text, title);
+        setLoading(false);
+      });
   };
 
   return (

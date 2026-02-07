@@ -51,9 +51,17 @@ const reportsRoutes = require('./routes/reports');
   const frontendUrl = allowedOrigins[0] || '';
   const frontendDist = path.join(__dirname, '..', 'frontend', 'dist');
   const serveFrontend = require('fs').existsSync(frontendDist);
-  // Combined deployment = same origin; use SameSite=Lax (mobile-friendly). Only use SameSite=None for separate cross-origin frontend.
   const isCrossOrigin = !serveFrontend && frontendUrl.startsWith('https://') && !frontendUrl.includes('localhost');
-  app.locals.cookieConfig = { isProduction, isCrossOrigin, serveFrontend, sameSite: isCrossOrigin ? 'none' : 'lax', secure: isProduction || isCrossOrigin };
+  // Same-origin: omit SameSite (browser default) for better Safari mobile compatibility. Cross-origin: SameSite=None; Secure.
+  const cookieOpts = {
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000,
+    secure: isProduction || isCrossOrigin,
+    ...(isCrossOrigin ? { sameSite: 'none' } : {}),
+  };
+  app.locals.cookieConfig = { isProduction, isCrossOrigin, serveFrontend, cookieOpts };
+
+  console.log('[session] serveFrontend=%s isCrossOrigin=%s secure=%s sameSite=%s', serveFrontend, isCrossOrigin, cookieOpts.secure, cookieOpts.sameSite || '(omit)');
 
   app.use(session({
     secret: process.env.SESSION_SECRET || 'car-rental-secret',
@@ -64,12 +72,7 @@ const reportsRoutes = require('./routes/reports');
       collectionName: 'sessions',
       ttl: 24 * 60 * 60, // 24 hours
     }),
-  cookie: {
-    httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000,
-    sameSite: isCrossOrigin ? 'none' : 'lax',
-    secure: isProduction || isCrossOrigin
-  }
+    cookie: cookieOpts,
   }));
 
   app.use('/api/auth', authRoutes);
